@@ -1,0 +1,66 @@
+//#include <iostream>
+//#include <stdio.h>
+//#include <opencv\cv.h>
+//#include <opencv\cxcore.h>
+//#include <opencv\highgui.h>
+//#include <opencv2\imgproc\imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char* argv[]) {
+
+	if (argc != 3)
+	{
+		cout << "Usage: exeFileName ImageToLoadAndDisplay Threshold" << endl;
+		return -1;
+	}
+
+	Mat image;
+	image = imread(argv[1], 1);
+	int T = atoi(argv[2]);
+	if (!image.data) {
+		cout << "Could not open or find the image" << std::endl;
+		return -1;
+	}
+
+	Mat gr;
+	cvtColor(image, gr, COLOR_BGR2GRAY);
+
+
+	int h = gr.rows;
+	int w = gr.cols;
+	int N = h * w; //No of pixels in an image
+	int x = 0;
+	double y = 0.0;
+	cout << "Width: " << w << endl;
+	cout << "Height: " << h << endl;
+
+	Mat med = gr.clone(); //Copy of image of the Histogram equilasation 
+	int Gx = 0;
+	int Gy = 0;
+	int G = 0;
+
+
+	for (int i = 1; i < h - 1; i++) {
+		for (int j = 1; j < w - 1; j++) {
+			Gx = gr.at<uchar>(i - 1, j + 1) + 2 * gr.at<uchar>(i, j + 1) + gr.at<uchar>(i + 1, j + 1) - 2 * gr.at<uchar>(i, j - 1) - gr.at<uchar>(i - 1, j - 1) - gr.at<uchar>(i - 1, j + 1);
+			Gy = gr.at<uchar>(i + 1, j - 1) + 2 * gr.at<uchar>(i + 1, j) + gr.at<uchar>(i + 1, j + 1) - gr.at<uchar>(i - 1, j - 1) - 2 * gr.at<uchar>(i - 1, j) - gr.at<uchar>(i + 1, j + 1);
+			G = abs(Gx) + abs(Gy);
+			med.at<uchar>(i, j) = (G >= T) ? 0 : 255;
+		}
+	}
+
+	namedWindow("Display Window", WINDOW_AUTOSIZE);
+	imshow("Display Window", med);
+	namedWindow("Display Gray", WINDOW_AUTOSIZE);
+	imshow("Display Gray", gr);
+	waitKey(0);
+	med.release();
+	gr.release();
+	return 0;
+}

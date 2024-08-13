@@ -1,0 +1,58 @@
+#include <iostream>
+#include <stdio.h>
+#include <cmath>
+#include <opencv2\highgui.hpp>
+#include <opencv2\imgproc\imgproc.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main(int argc, char* argv[])
+{
+    if (argc != 2)
+    {
+        cout << "Usage: exeFileName ImageToLoadAndDisplay" << endl;
+        return -1;
+    }
+
+    Mat image = imread(argv[1], IMREAD_UNCHANGED);
+    if (!image.data)
+    {
+        cout << "Could not open or find the image" << std::endl;
+        return -1;
+    }
+    Mat gr;
+    cvtColor(image, gr, COLOR_BGR2GRAY);
+
+    int h = gr.rows;
+    int w = gr.cols;
+
+    Mat gaussian = gr.clone();
+    int kernel = 5;
+
+    double sum = 0.0;
+    int gaussian_kernel[5][5] = {
+        {1, 4, 7, 4, 1},
+        {4, 16, 26, 16, 4},
+        {7, 26, 41, 26, 7},
+        {4, 16, 26, 16, 4},
+        {1, 4, 7, 4, 1} };
+
+    for (int i = kernel / 2; i < h - (kernel / 2); i++) {
+        for (int j = kernel / 2; j < w - (kernel / 2); j++) {
+            int sum = 0;
+            for (int m = -kernel / 2; m <= kernel / 2; m++) {
+                for (int n = -kernel / 2; n <= kernel / 2; n++) {
+                    sum += gaussian_kernel[2 + m][2 + n] * gr.at<uchar>(i + m, j + n);
+                }
+            }
+
+            gaussian.at<uchar>(i, j) = static_cast<uchar>(sum / 273);
+        }
+    }
+
+    imshow("Image:", gr);
+    imshow("Gausssian Smoothed", gaussian);
+    waitKey(0);
+    return 0;
+}
